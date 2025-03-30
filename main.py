@@ -7,6 +7,8 @@ import os
 from typing import *
 import logging
 from datetime import datetime
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
 
 # Configure logging
 logging.basicConfig(
@@ -107,8 +109,7 @@ def update_dns_record(api_email: str, api_key: str, zone_id: str, record_id: str
         logger.error(f"Error updating DNS record: {e}")
         return False
 
-
-def main():
+def run_updater():
     logger.info("Starting DDNS update process")
     
     # Read configuration
@@ -153,6 +154,19 @@ def main():
             logger.error(f"Failed to update DNS record {record_name}")
     
     logger.info("DDNS update process completed")
+
+def main():
+    secrets = read_secrets('secrets.yaml')
+    scheduler = BlockingScheduler()
+    
+    # Add the job with cron schedule from config
+    scheduler.add_job(
+        run_updater,
+        CronTrigger.from_crontab(secrets['schedule']['cron'])
+    )
+    
+    logger.info(f"Starting scheduler with cron: {secrets['schedule']['cron']}")
+    scheduler.start()
 
 if __name__ == "__main__":
     main()

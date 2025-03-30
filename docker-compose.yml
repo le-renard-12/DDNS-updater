@@ -1,0 +1,9 @@
+services:
+  ddns-updater:
+    build: .
+    restart: unless-stopped
+    environment:
+      - TZ=Europe/Zurich
+    volumes:
+      - ./secrets.yaml:/app/secrets.yaml
+      - ./ddns_updater.log:/app/ddns_updater.log
